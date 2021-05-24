@@ -1,5 +1,7 @@
 # lobinho
-Remake do jogo Werewolf (do telegram) para o Discord.
+Remake do jogo Werewolf for Telegram para o Discord, utilizando NodeJS e o Discord.js.
+
+# AINDA NÃO ESTÁ FUNCIONANDO
 
 ## Como usar
 Precisa do Node.js (nodejs.org) e do Discord.js.
@@ -14,3 +16,4 @@ Para iniciar:
 ```
 node .
 ```
+
