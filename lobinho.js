@@ -1,60 +1,13 @@
-const Discord = require('discord.js')
-const bot = new Discord.Client();
-const config = require("./config.json")
-
-let canalPraEnviarMsgs = config.CHANNEL;
-botToken = config.TOKEN;
-
-bot.login(botToken);
-
-bot.on('message', msg => {
-    if(msg.channel.type === "dm")
-    {
-        
-    }
-    if(msg.content.startsWith("#queroJogar") && !jogoAcontecendo)
-    {
-        entrarLobby(msg.author);
-        //console.log(msg.author)
-        msg.channel.send(`${msg.author.username} entrou no lobby`);
-        msg.channel.send(getLobby());
-    }
-    else if(msg.content.startsWith("#queroJogar") && jogoAcontecendo)
-    {
-        msg.channel.send("Espere pela proxima partida")
-    }
-
-    if(msg.content.startsWith("#lobby"))
-    {
-        msg.channel.send(getLobby());
-    }
-
-    if(msg.content.startsWith("#start") && !jogoAcontecendo)
-    {
-        iniciarPartida()
-    }
-    else if(msg.content.startsWith("#start") && jogoAcontecendo)
-    {
-        msg.channel.send("Espere pela proxima partida")
-    }
-})
-
-bot.on('ready',function(){
-    console.log("lobinho ligado, auuuuuuuu");
-})
-
-bot.on('guildMemberAdd',membro =>{
-    MandarMSG(canalPraEnviarMsgs,"oh nao");
-})
-
 // lobinho
-const roles = ["lobo","habitante","suicida","maçom","xerife","otario","clarividente"];
+const roles = ["lobo","habitante","suicida","maçom","xerife","otario","clarividente","assassino"];
 const cargos = {
-    LOBO:"lobo", HABITANTE:"habitante", SUICIDA:"suicida", MAÇOM:"maçom", XERIFE:"xerife", OTARIO:"otario", CLARIVIDENTE:"clarividente"
+    LOBO:"lobo", HABITANTE:"habitante", SUICIDA:"suicida", MAÇOM:"maçom", XERIFE:"xerife", OTARIO:"otario", CLARIVIDENTE:"clarividente",ASSASSINO:"assassino"
 }
 let lobby = [];//adicionar quem vai estar jogando
 let partida = [];//{jogador,role} 
 let jogoAcontecendo = false;
+let votos = [];//votos[index]++
+let vivos = [];//vivos[index] = true/false
 
 function entrarLobby(usuario)
 {
@@ -81,20 +34,18 @@ function iniciarPartida()//vetorJogadores = lobby?
         //console.log("usuario: "+lobby[index].username)
         //console.log("jogador "+partida[index].player+" cargo: "+partida[index].role)
     }
+    //lobby = []
 
-    bot.setTimeout(abrirVotacao,10000)
+    //bot.setTimeout(abrirVotacao,10000)
     jogoAcontecendo = true
 }
+
+
 function acabouTempo()
 {
 
 }
-function MandarDM(id,msg)
-{
-    console.log("Mandando DM para o id "+id)
-    let x = bot.users.cache.get(id);
-    x.send(msg)
-}
+
 function getLobby()
 {
     msg = "Atualmente, os seguintes jogadores estão no lobby: "
@@ -104,11 +55,7 @@ function getLobby()
     //bot.channels.cache.get(canalPraEnviarMsgs).send(msg);
     return msg;
 }
-function MandarMSG(idcanal,msg)
-{
-    let canal = bot.channels.cache.get(idcanal);
-    canal.send(msg);
-}
+
 function NovaRodada()
 {
 
@@ -146,7 +93,7 @@ function ficarDeNoite()
         }
         else if(partida[index].role == cargos.OTARIO)
         {
-            
+
         }
         else if(partida[index].role == cargos.CLARIVIDENTE)
         {
@@ -178,35 +125,20 @@ function embaralharArray(array)
     return array;
 }
 
-
 // FIRULAS
-
-let teste = process.openStdin()
-teste.addListener('data',function(a){
-    let t = a.toString()
-    let canal = bot.channels.cache.get("846193193879470113");
-    canal.send(t);
-    //bot.channels.cache.get("846193193879470111")
-})
-
-function Player()
+function SalvarPontuacao()
 {
-    let funcao = ""
+    file.writeFile("highscore","teste",function(a)
+    {
+        if(a) throw a;
+    })
 }
-
-
-function Lobo()
+let highscore;
+function LerPontuacao()
 {
-    let help = ""
-}
-function Habitante()
-{
-
-    let help = "funcao.ajuda;"
-}
-function Suicida()
-{
-
-    let help = "funcao.ajuda;"
+    file.readFile("highscore",function(erro,dado){
+        if(erro) throw erro;
+        highscore= dado
+    })
 }
 
