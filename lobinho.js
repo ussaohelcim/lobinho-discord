@@ -1,21 +1,65 @@
-// lobinho
+// #region Bot
+const Discord = require('discord.js')
+const bot = new Discord.Client();
+const config = require("./config.json")
+
+let canalPraEnviarMsgs = config.CHANNEL;
+botToken = config.TOKEN;
+
+bot.login(botToken);
+
+bot.on('message', msg => {
+    if(msg.channel.type === "dm")
+    {
+
+    }
+    if(msg.content.startsWith("#queroJogar") && !jogoAcontecendo)
+    {
+        entrarLobby(msg.author);
+        //console.log(msg.author)
+        msg.channel.send(`${msg.author.username} entrou no lobby`);
+        msg.channel.send(getLobby());
+    }
+    else if(msg.content.startsWith("#queroJogar") && jogoAcontecendo)
+    {
+        msg.channel.send("Espere pela proxima partida")
+    }
+
+    if(msg.content.startsWith("#lobby"))
+    {
+        msg.channel.send(getLobby());
+    }
+
+    if(msg.content.startsWith("#start") && !jogoAcontecendo)
+    {
+        iniciarPartida()
+    }
+    else if(msg.content.startsWith("#start") && jogoAcontecendo)
+    {
+        msg.channel.send("Espere pela proxima partida")
+    }
+})
+
+bot.on('ready',function(){
+    console.log("lobinho ligado, auuuuuuuu");
+})
+
+bot.on('guildMemberAdd',membro =>{
+    MandarMSG(canalPraEnviarMsgs,"oh nao");
+})
+// #endregion 
+
+// #region partida
 const roles = ["lobo","habitante","suicida","maçom","xerife","otario","clarividente","assassino"];
 const cargos = {
     LOBO:"lobo", HABITANTE:"habitante", SUICIDA:"suicida", MAÇOM:"maçom", XERIFE:"xerife", OTARIO:"otario", CLARIVIDENTE:"clarividente",ASSASSINO:"assassino"
 }
-let lobby = [];//adicionar quem vai estar jogando
 let partida = [];//{jogador,role} 
 let jogoAcontecendo = false;
 let votos = [];//votos[index]++
 let vivos = [];//vivos[index] = true/false
 
-function entrarLobby(usuario)
-{
-    lobby.push(usuario);
-    //console.log(usuario)
-    //console.log(lobby[0])
-    //console.log(lobby[0].id)
-}
+
 function iniciarPartida()//vetorJogadores = lobby?
 {
     //se numero de jogadores > 8 pode ter 2 lobos
@@ -39,13 +83,18 @@ function iniciarPartida()//vetorJogadores = lobby?
     //bot.setTimeout(abrirVotacao,10000)
     jogoAcontecendo = true
 }
+// #endregion
 
+// #region lobby
+let lobby = [];//adicionar quem vai estar jogando
 
-function acabouTempo()
+function entrarLobby(usuario)
 {
-
+    lobby.push(usuario);
+    //console.log(usuario)
+    //console.log(lobby[0])
+    //console.log(lobby[0].id)
 }
-
 function getLobby()
 {
     msg = "Atualmente, os seguintes jogadores estão no lobby: "
@@ -54,6 +103,13 @@ function getLobby()
     })
     //bot.channels.cache.get(canalPraEnviarMsgs).send(msg);
     return msg;
+}
+// #endregion
+
+// #region lobinho
+function acabouTempo()
+{
+
 }
 
 function NovaRodada()
@@ -113,19 +169,9 @@ function votar(emQuem)
 {
     MandarDM("id","Você votou em: ");
 }
-function embaralharArray(array)
-{
-    for(let i =0; i < array.length; i++)
-    {
-        let pos = Math.random()*array.length;
-        let temp = array[i];
-        array[i] = array[pos];
-        array[pos] = temp;
-    }
-    return array;
-}
+// #endregion
 
-// FIRULAS
+// #region pontuacao
 function SalvarPontuacao()
 {
     file.writeFile("highscore","teste",function(a)
@@ -141,4 +187,18 @@ function LerPontuacao()
         highscore= dado
     })
 }
+// #endregion
 
+// #region utiliadades
+function embaralharArray(array)
+{
+    for(let i =0; i < array.length; i++)
+    {
+        let pos = Math.random()*array.length;
+        let temp = array[i];
+        array[i] = array[pos];
+        array[pos] = temp;
+    }
+    return array;
+}
+// #endregion
