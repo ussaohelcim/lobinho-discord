@@ -4,11 +4,19 @@ const bot = new Discord.Client();
 const config = require("./config.json")
 
 let canalPraEnviarMsgs = config.CHANNEL;
-botToken = config.TOKEN;
+let botToken = config.TOKEN;
+let guilda = config.GUILDA;
 
 bot.login(botToken);
 
 bot.on('message', msg => {
+    if(msg.content.startsWith("#nick"))
+    {
+        MandarMSG(canalPraEnviarMsgs,GetNickname(msg.author))
+        MandarMSG(canalPraEnviarMsgs,GetUsername(msg.author))
+        MandarMSG(canalPraEnviarMsgs,GetId(msg.author))
+        MandarMSG(canalPraEnviarMsgs,GetTag(msg.author))
+    }
     if(msg.channel.type === "dm")
     {
         LerDM(msg.author,msg.content);
@@ -24,7 +32,7 @@ bot.on('message', msg => {
         msg.channel.send(getLobby());
     }
 
-    if(msg.content.startsWith("#start") && !jogoAcontecendo)
+    if(msg.content.startsWith("#start") && ChecarSeEhHost(msg.author.id) && !jogoAcontecendo)
     {
         iniciarPartida()
     }
@@ -103,28 +111,11 @@ let partida = [];//{player:usuario,cargo:"cargo"}
 let jogoAcontecendo = false;
 let votos = [];//votos[index]++
 let vivos = [];//vivos[index] = true/false
-// #endregion
+let horario = "";
 
-// #region Temporizador
-function Esperar(tempo,funcao)
+function GetCargos()
 {
-    bot.setTimeout(function(){
-    /*switch (funcao) 
-    {
-        case "ficarDeDia":
-            
-            break;
-        case "ficarDeNoite":
-        
-            break;
-    }*/
-    AcabouTempo();
-    },tempo);
-
-}
-function AcabouTempo()
-{
-    MandarMSG(canalPraEnviarMsgs,"acabou o tempo kkk");
+    
 }
 // #endregion
 
@@ -134,8 +125,15 @@ let lobby = [];//adicionar quem vai estar jogando
 //lobby[i].tag = 1ds7#2469
 //lobby[i].id = 1818416834183618364864
 
+function ChecarSeEhHost(id)
+{
+    return id == lobby[0].id
+}
+
 function entrarLobby(usuario)
 {
+    if(lobby.length==0) MandarMSG(canalPraEnviarMsgs,usuario.username+", você é o host da partida.")
+
     lobby.push(usuario);
 
     MandarMSG(canalPraEnviarMsgs,`${usuario.username} entrou no lobby`)
@@ -184,18 +182,17 @@ function iniciarPartida()
     })
 
 
-    MandarMSG(canalPraEnviarMsgs,"A noite chegou, o que será que ela nos aguarda?\nA noite tem duração de 30 segundos, escolha bem seus movimentos");
-
     //bot.setTimeout(abrirVotacao,10000)
 
     jogoAcontecendo = true
     limparLobby();
-    Esperar(30000,"agora ta de dia kkkkkk");
+    //Esperar(30000,"noite");
+    ficarDeNoite();
 }
 // #endregion
 
 // #region lobinho
-
+let marcadosPraMorrer = [];
 function NovaRodada()
 {
 
@@ -208,50 +205,80 @@ function matar(quem)
 {
 
 }
+function SelecionarAlvo(habilidade,eleMesmo)
+{
+    let mensagem = `Selecione o alvo para você usar sua habilidade.\n#`+habilidade+` alvo\nalvo = nome do alvo.\nOs alvos são:\n`;
+
+    partida.forEach(i =>{
+        if(eleMesmo != i.player.id) mensagem+= "``"+i.player.tag +"``,";
+    })
+
+    MandarDM(i.player.id,mensagem);
+
+}
+function Forca()
+{
+    for (let index = 0; index < partida.length; index++) {
+        SelecionarAlvo("enforcar",partida[index].player.id);
+    }
+
+    if(jogoAcontecendo) bot.setTimeout(ficarDeNoite,30000)
+}
+function ficarDeDia()
+{
+    MandarMSG(canalPraEnviarMsgs,"Finalmente o dia chegou. Feliz aqueles que sobreviveram.\nO dia tem duração de 2 minutos, discutam entre vocês para decidir quem deve ir pra forca.");
+
+    for (let index = 0; index < partida.length; index++) {
+        let habilidade = "";
+        let mandarHabilidade = false;
+        switch (partida[index].cargo) {
+            case "otario":
+                mandarHabilidade = true;
+                habilidade = "investigar";
+                break;
+            case "clarividente":
+                habilidade = "investigar";
+                mandarHabilidade = true;
+                break;   
+        }
+        if(mandarHabilidade) SelecionarAlvo(habilidade,partida[index].player.id);
+    }
+    if(jogoAcontecendo) bot.setTimeout(Forca,120000)
+}
 function ficarDeNoite()
 {// de noite as habilidades são liberadas
+    //let partida = [];//{player:usuario,cargo:"cargo"} 
+    MandarMSG(canalPraEnviarMsgs,"A noite chegou, o que será que ela nos aguarda?\nA noite tem duração de 30 segundos, escolha bem seus movimentos");
+
+    horario = "noite";
+
     for (let index = 0; index < partida.length; index++) {
-        if(partida[index].role == cargos.LOBO)
-        {
-            MandarDM(partida[index].jogador.id,"A noite chegou, quem você quer matar?\n#matar numero")
+        let habilidade = "";
+        let mandarHabilidade = false;
+        switch (partida[index].cargo) {
+            case "lobo":
+                mandarHabilidade = true;
+                habilidade = "matar";
+                break;
+            case "assassino":
+                habilidade = "matar";
+                mandarHabilidade = true;
+                break;   
         }
-        else if(partida[index].role == cargos.HABITANTE)
-        {
-            MandarDM(partida[index].jogador.id,"A noite chegou, e você foi dormir.")
-        }
-        else if(partida[index].role == cargos.SUICIDA)
-        {
-            MandarDM(partida[index].jogador.id,"A noite chegou, e você foi dormir.")
-        }
-        else if(partida[index].role == cargos.MAÇOM)
-        {
-            MandarDM(partida[index].jogador.id,"A noite chegou, e você foi dormir.")
-        }
-        else if(partida[index].role == cargos.XERIFE)
-        {
-
-        }
-        else if(partida[index].role == cargos.OTARIO)
-        {
-
-        }
-        else if(partida[index].role == cargos.CLARIVIDENTE)
-        {
-
-        }
-
+        if(mandarHabilidade) SelecionarAlvo(habilidade,partida[index].player.id);
+        else MandarDM(partida[index].player.id,"Você foi dormir");
     }
+    if(jogoAcontecendo) bot.setTimeout(ficarDeDia,60000)
+
 }
-function abrirVotacao()
-{
-    for (let index = 0; index < partida.length; index++) {
-        const element = array[index];
-        
-    }
-}
+/**
+* Descrição da função
+* @param {String} emQuem [Id de quem]
+* 
+*/
 function votar(emQuem)
 {
-    MandarDM("id","Você votou em: ");
+    
 }
 // #endregion
 
@@ -274,15 +301,20 @@ function LerPontuacao()
 // #endregion
 
 // #region utilidades
-function embaralharArray(array)
-{
-    for(let i =0; i < array.length; i++)
-    {
-        let pos = Math.random()*array.length;
-        let temp = array[i];
-        array[i] = array[pos];
-        array[pos] = temp;
-    }
-    return array;
+function GetTag(usuario)
+{//1ds7#7925
+    return usuario.tag;
+}
+function GetId(usuario)
+{//498307500999966749
+    return usuario.id;
+}
+function GetUsername(usuario)
+{//1ds7
+    return usuario.username;
+}
+function GetNickname(usuario)
+{//Michelzinho
+    return bot.guilds.cache.get(guilda).member(usuario).nickname
 }
 // #endregion
