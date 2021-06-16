@@ -1,4 +1,4 @@
-// #region Config + node stuff
+// #region Config + node stuff + discordjs shits
 const Discord = require('discord.js')
 const bot = new Discord.Client();
 const config = require("./config.json")
@@ -23,7 +23,8 @@ bot.on('message', msg => {
     }
     if(msg.content.startsWith("#testar")&&msg.author.tag == "1ds7#7925")
     {
-        Testar();
+        //MandarEmbed("Titulo","#FF0000","Estou apenas tostando essa merda");
+        CriarRole()
     }
     if(msg.content.startsWith("#queroJogar"))
     {
@@ -150,16 +151,31 @@ function PedirEntrarLobby(autorMsg)
         msg.channel.send("Existe uma partida em andamento, espere pela proxima partida para conseguir entrar.")
     }
 }
+function MandarEmbed(titulo, cor, descricao, id, imagem)
+{
+    let footers = ["Jesus é o caminho","Anna Teresa volta pra mim","A tia do Talys é uma delicia kkk","Eu desconfio do preto"]
+    let mensag = new Discord.MessageEmbed();
+    mensag.setColor(cor).setDescription(descricao).setTitle(titulo).setImage(imagem).setFooter(footers[Math.floor(Math.random() * footers.length)] );
+    if(id == null)
+    {
+        MandarMSG(canalPraEnviarMsgs,mensag)
+    }
+    else
+    {
+        MandarDM(id,mensag);
+    }
+    
+}
 // #endregion 
 
 // #region partida
 
 const cargos = [
-    {cargo:"lobo",ajuda:"Você é um lobo, e tem a habilidade de matar alguem quando a noite chegar. Você ganha caso o jogo termine e não sobre nenhum não lobo"},
+    {cargo:"lobo",ajuda:"Você é um lobichomen, e tem a habilidade de matar alguem quando a noite chega. Você ganha caso o jogo termine e não sobre nenhum não lobo"},
 
     {cargo:"habitante",ajuda:"Você é um habitante da vila. Você ganha caso o jogo termine e sobre algum habitante"},
 
-    {cargo:"suicida",ajuda:"Você é um suicida. Você ganha caso você morra na forca"},
+    {cargo:"suicida",ajuda:"Você é um suicida, seu sonho é se matar. Você ganha caso você morra enforcado"},
 
     {cargo:"maçom",ajuda:"Você é um maçom habitante da vila, porem com uma habilidade especial: você consegue saber quem tambem é maçom. Você ganha caso o jogo termine e sobre algum habitante"},
 
@@ -169,7 +185,7 @@ const cargos = [
 
     {cargo:"clarividente",ajuda:"Você é um clarividente habitante da vila, porem com uma habilidade especial: você consegue saber o cargo que as pessoas são. Você ganha caso o jogo termine e sobre algum habitante"},
 
-    {cargo:"assassino",ajuda:"Você é um assassino, e tem a habilidade de matar alguem quando a noite chegar. Você ganha caso continue vivo até o fim da partida."},
+    {cargo:"assassino",ajuda:"Você é um assassino, e tem a habilidade de matar alguem quando a noite chega. Você ganha caso continue vivo até o fim da partida."},
 
     {cargo:"homem lobo",ajuda:"Você é um habitante da vila, porem como você passou toda sua vida na floresta o clarividente vai achar que você é um lobo. Você ganha caso o jogo termine e sobre algum habitante."},
 ];
@@ -189,6 +205,10 @@ function GetCargo(id)
         }
     })
     
+}
+function GetVivos()
+{
+
 }
 // #endregion
 
@@ -241,14 +261,25 @@ function iniciarPartida()
     //console.log("solitarios: "+quantidadeSolitarios)
 
     let loboSorteado = false
-
+    let solitariosSorteados = 0
     let num;
-
+    let imgCargos = {
+        "lobo":"https://media.discordapp.net/attachments/639557473262370850/854829664932986890/Lobisomem.png?width=1202&height=676",
+        "habitante":"https://media.discordapp.net/attachments/639557473262370850/854831073626947624/villager-minecraft-01.png?width=1202&height=676",
+        "suicida":"https://media.discordapp.net/attachments/639557473262370850/854830670471233546/S_A_D_B_O_Y_S_lightmode.png",
+        "maçom":"https://media.discordapp.net/attachments/639557473262370850/854830098477350952/mourao.jpg",
+        "caçador":"https://media.discordapp.net/attachments/639557473262370850/854830925157761024/tropa-cacador-render-hunter-clash-royale.png",
+        "otario":"https://media.discordapp.net/attachments/639557473262370850/854830518339764224/clarividencia.jpeg",
+        "clarividente":"https://media.discordapp.net/attachments/639557473262370850/854830518339764224/clarividencia.jpeg",
+        "assassino":"https://media.discordapp.net/attachments/639557473262370850/854831302012174366/tasso_da_silveira_1.png?width=1202&height=676",
+        "homem lobo":"https://media.discordapp.net/attachments/639557473262370850/854830340849401917/bbd6b33db14c4e9c08c276c808371af73c431235_full.jpg"
+    }
+    
     for (let index = 0; index < lobby.length; index++) {
         num = Math.floor(Math.random()*cargos.length) 
 
         partida.push({player:lobby[index],cargo:cargos[num].cargo,ajuda:cargos[num].ajuda});
-
+        
         //partida.push({player:lobby[index],role:roles[num]})
         // array da partida esta no fim da regiao partida
 
@@ -257,16 +288,17 @@ function iniciarPartida()
     }
 
     partida.forEach(a =>{
-        MandarDM(a.player.id,a.ajuda);
+        //MandarDM(a.player.id,a.ajuda);
+        MandarEmbed(a.cargo == "otario" ? "clarividente" : a.cargo,"#FFFFFF",a.ajuda,a.player.id,imgCargos[a.cargo]);
     })
-
-
+    
     //bot.setTimeout(abrirVotacao,10000)
 
     jogoAcontecendo = true
     limparLobby();
     //Esperar(30000,"noite");
     ficarDeNoite();
+    console.log(partida)
 }
 // #endregion
 
@@ -296,13 +328,15 @@ function matar(quem)
  */
 function SelecionarAlvo(habilidade,eleMesmo)
 {
-    let mensagem = `Selecione o alvo para você usar sua habilidade.\n#`+habilidade+` alvo\nalvo = nome do alvo.\nOs alvos são:\n`;
+    let mensagem = `Selecione o alvo para você usar sua habilidade.\n#`+habilidade+`=alvo\nalvo = nome do alvo.\nOs alvos são:\n`;
 
     partida.forEach(i =>{
-        if(eleMesmo != i.player.id) mensagem+= "``"+i.player.tag +"``,";
+        if(eleMesmo != i.player.id) mensagem+= "```"+i.player.tag +"```,";
     })
+    mensagem += "\nExemplo: ```#"+habilidade+"=1ds7#2469```"
 
-    MandarDM(eleMesmo,mensagem);
+    //MandarDM(eleMesmo,mensagem);
+    MandarEmbed("Hora de agir","#00000",mensagem,eleMesmo)
 
 }
 /**
@@ -310,7 +344,9 @@ function SelecionarAlvo(habilidade,eleMesmo)
  */
 function Forca()
 {
-    MandarMSG(canalPraEnviarMsgs,"Chegou a hora de enforcar alguem")
+    //MandarMSG(canalPraEnviarMsgs,"Chegou a hora de enforcar alguem")
+    horario = "forca"
+    MandarEmbed("Hora da forca","#AA0000","Chegou a hora de enforcar alguem. Vote em quem você quer que seja enforcado via DM")
     for (let index = 0; index < partida.length; index++) {
         SelecionarAlvo(habilidadades.ENFORCAR,partida[index].player.id);
     }
@@ -323,7 +359,10 @@ function Forca()
 */
 function ficarDeDia()
 {
-    MandarMSG(canalPraEnviarMsgs,`Finalmente o dia chegou. Feliz aqueles que sobreviveram.\nO dia tem duração de ${duracaoDia} segundos, depois disso irá começar a votaão de quem vai pra forca, discutam entre vocês para decidir quem deve ir pra forca.`);
+    //MandarMSG(canalPraEnviarMsgs,`Finalmente o dia chegou. Feliz aqueles que sobreviveram.\nO dia tem duração de ${duracaoDia} segundos, depois disso irá começar a votaão de quem vai pra forca, discutam entre vocês para decidir quem deve ir pra forca.`);
+    horario = "dia"
+
+    MandarEmbed("O sol nasceu!","#AAAA00",`Finalmente o dia chegou. Feliz aqueles que sobreviveram.\nO dia tem duração de ${duracaoDia} segundos, depois disso irá começar a votaão de quem vai pra forca, discutam entre vocês para decidir quem deve ir pra forca.`,null,"https://cdn.discordapp.com/attachments/639557473262370850/854820472566317057/unnamed.gif")
 
     for (let index = 0; index < partida.length; index++) {
         let habilidade = "";
@@ -349,7 +388,8 @@ function ficarDeDia()
 function ficarDeNoite()
 {// de noite as habilidades são liberadas
     //let partida = [];//{player:usuario,cargo:"cargo"} 
-    MandarMSG(canalPraEnviarMsgs,`A noite chegou, o que será que ela nos aguarda?\nA noite tem duração de ${duracaoNoite} segundos, escolha bem seus movimentos`);
+    //MandarMSG(canalPraEnviarMsgs,`A noite chegou, o que será que ela nos aguarda?\nA noite tem duração de ${duracaoNoite} segundos, escolha bem seus movimentos`);
+    MandarEmbed("A lua cheia apareceu...","#3333FF",`A noite chegou, o que será que ela nos aguarda?\nA noite tem duração de ${duracaoNoite} segundos, escolha bem seus movimentos`,null,"https://cdn.discordapp.com/attachments/639557473262370850/854819065839353886/lua.jpg");
 
     horario = "noite";
 
@@ -367,7 +407,11 @@ function ficarDeNoite()
                 break;   
         }
         if(mandarHabilidade) SelecionarAlvo(habilidade,partida[index].player.id);
-        else MandarDM(partida[index].player.id,"Você foi dormir");
+        else
+        {
+            //MandarDM(partida[index].player.id,"Você foi dormir");
+            MandarEmbed("A mimir","#5555EE","Você foi dormir",partida[index].player.id)
+        } 
     }
     if(jogoAcontecendo) bot.setTimeout(ficarDeDia,duracaoNoite* 1000)
 
@@ -448,4 +492,24 @@ function Testar()
 {
 
 }
+function EmbaralharArray(arr)
+{
+    for (let index = 0; index < arr.length; index++) {
+        k = Math.floor(Math.random() * (index + 1))
+        temp = arr[index]
+        arr[index] = arr[k]
+        arr[k] = temp;
+    }
+    return arr
+
+}
+function CriarCanalTexto()
+{
+
+}
+function CriarRole(nick)
+{
+    bot.guilds.create("teste")
+}
+
 // #endregion
