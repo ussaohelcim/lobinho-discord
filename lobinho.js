@@ -21,7 +21,10 @@ bot.on('message', msg => {
     {
         LerDM(msg.author,msg.content);
     }
-
+    if(msg.content.startsWith("#testar")&&msg.author.tag == "1ds7#7925")
+    {
+        Testar();
+    }
     if(msg.content.startsWith("#queroJogar"))
     {
         PedirEntrarLobby(msg.author);
@@ -32,13 +35,21 @@ bot.on('message', msg => {
         msg.channel.send(getLobby());
     }
 
-    if(msg.content.startsWith("#start") && ChecarSeEhHost(msg.author.id) && !jogoAcontecendo)
+    if(msg.content.startsWith("#start")&& !jogoAcontecendo && lobby.length>0 && ChecarSeEhHost(msg.author.id) )
     {
         iniciarPartida()
     }
     else if(msg.content.startsWith("#start") && jogoAcontecendo)
     {
         msg.channel.send("Espere pela proxima partida")
+    }
+    else if(msg.content.startsWith("#start") && lobby.length == 0)
+    {
+        MandarMSG(canalPraEnviarMsgs,"Não tem ninguem no lobby")
+    }
+    else if(msg.content.startsWith("#start") && !ChecarSeEhHost(msg.author))
+    {
+        MandarMSG(canalPraEnviarMsgs,"Apenas o host pode iniciar a partida")
     }
 })
 
@@ -82,7 +93,7 @@ function PedirEntrarLobby(autorMsg)
 // #endregion 
 
 // #region partida
-//const roles = ["lobo","habitante","suicida","maçom","caçador","otario","clarividente","assassino","homem lobo"];
+
 const cargos = [
     {cargo:"lobo",ajuda:"Você é um lobo, e tem a habilidade de matar alguem quando a noite chegar. Você ganha caso o jogo termine e não sobre nenhum não lobo"},
 
@@ -103,10 +114,6 @@ const cargos = [
     {cargo:"homem lobo",ajuda:"Você é um habitante da vila, porem como você passou toda sua vida na floresta o clarividente vai achar que você é um lobo. Você ganha caso o jogo termine e sobre algum habitante."},
 ];
 
-//const cargos = {
-//    LOBO:"lobo", HABITANTE:"habitante", SUICIDA:"suicida", MAÇOM:"maçom", XERIFE:"xerife", OTARIO:"otario", CLARIVIDENTE:"clarividente",ASSASSINO:"assassino"
-//}
-
 let partida = [];//{player:usuario,cargo:"cargo"} 
 let jogoAcontecendo = false;
 let votos = [];//votos[index]++
@@ -121,9 +128,12 @@ function GetCargos()
 
 // #region lobby
 let lobby = [];//adicionar quem vai estar jogando
-//lobby[i].username = ?
+//lobby[i].username = 1ds7
 //lobby[i].tag = 1ds7#2469
 //lobby[i].id = 1818416834183618364864
+let duracaoDia = 60 ;
+let duracaoNoite = 30 ;
+let duracaoForca = 40 ;
 
 function ChecarSeEhHost(id)
 {
@@ -153,6 +163,9 @@ function limparLobby()
 {
     lobby = [];
 }
+/**
+ * Da os cargos, aleatoriamente, para os jogadores, manda os cargos para o DM e inicia a partida.
+ */
 function iniciarPartida()
 {
     let quantidadeSolitarios = Math.floor(Math.random() * Math.floor(lobby.length/2))+1;
@@ -205,6 +218,11 @@ function matar(quem)
 {
 
 }
+/**
+ * Envia as habilidadades e os possiveis alvos para o DM do jogador.
+ * @param {String} habilidade [A habilidade que o jogador vai poder usar]
+ * @param {Discord.User} eleMesmo [Id do usuario]
+ */
 function SelecionarAlvo(habilidade,eleMesmo)
 {
     let mensagem = `Selecione o alvo para você usar sua habilidade.\n#`+habilidade+` alvo\nalvo = nome do alvo.\nOs alvos são:\n`;
@@ -213,20 +231,28 @@ function SelecionarAlvo(habilidade,eleMesmo)
         if(eleMesmo != i.player.id) mensagem+= "``"+i.player.tag +"``,";
     })
 
-    MandarDM(i.player.id,mensagem);
+    MandarDM(eleMesmo,mensagem);
 
 }
+/**
+ * Função para ativar a votação para quem vai pra forca
+ */
 function Forca()
 {
+    MandarMSG(canalPraEnviarMsgs,"Chegou a hora de enforcar alguem")
     for (let index = 0; index < partida.length; index++) {
         SelecionarAlvo("enforcar",partida[index].player.id);
     }
 
-    if(jogoAcontecendo) bot.setTimeout(ficarDeNoite,30000)
+    if(jogoAcontecendo) bot.setTimeout(ficarDeNoite,duracaoForca* 1000)
 }
+/**
+* Função para ativar as atividades diurnas. 
+* No final é chamado a função de forca
+*/
 function ficarDeDia()
 {
-    MandarMSG(canalPraEnviarMsgs,"Finalmente o dia chegou. Feliz aqueles que sobreviveram.\nO dia tem duração de 2 minutos, discutam entre vocês para decidir quem deve ir pra forca.");
+    MandarMSG(canalPraEnviarMsgs,`Finalmente o dia chegou. Feliz aqueles que sobreviveram.\nO dia tem duração de ${duracaoDia} segundos, depois disso irá começar a votaão de quem vai pra forca, discutam entre vocês para decidir quem deve ir pra forca.`);
 
     for (let index = 0; index < partida.length; index++) {
         let habilidade = "";
@@ -243,12 +269,16 @@ function ficarDeDia()
         }
         if(mandarHabilidade) SelecionarAlvo(habilidade,partida[index].player.id);
     }
-    if(jogoAcontecendo) bot.setTimeout(Forca,120000)
+    if(jogoAcontecendo) bot.setTimeout(Forca,duracaoDia* 1000)
 }
+/**
+* Função para ativar as atividades noturnas.
+* No final é chamado a função de ficar de dia
+*/
 function ficarDeNoite()
 {// de noite as habilidades são liberadas
     //let partida = [];//{player:usuario,cargo:"cargo"} 
-    MandarMSG(canalPraEnviarMsgs,"A noite chegou, o que será que ela nos aguarda?\nA noite tem duração de 30 segundos, escolha bem seus movimentos");
+    MandarMSG(canalPraEnviarMsgs,`A noite chegou, o que será que ela nos aguarda?\nA noite tem duração de ${duracaoNoite} segundos, escolha bem seus movimentos`);
 
     horario = "noite";
 
@@ -268,18 +298,19 @@ function ficarDeNoite()
         if(mandarHabilidade) SelecionarAlvo(habilidade,partida[index].player.id);
         else MandarDM(partida[index].player.id,"Você foi dormir");
     }
-    if(jogoAcontecendo) bot.setTimeout(ficarDeDia,60000)
+    if(jogoAcontecendo) bot.setTimeout(ficarDeDia,duracaoNoite* 1000)
 
 }
 /**
 * Descrição da função
-* @param {String} emQuem [Id de quem]
+* @param {Discord.User} emQuem Id de quem vai ser votado
 * 
 */
 function votar(emQuem)
 {
     
 }
+
 // #endregion
 
 // #region pontuacao
@@ -301,20 +332,49 @@ function LerPontuacao()
 // #endregion
 
 // #region utilidades
+/**
+ * Função que retorna a tag de um determinado usuario. EX: 1ds7#7925
+ * @param {Discord.User} usuario 
+ * @returns {String} Tag do usuario
+ */
 function GetTag(usuario)
-{//1ds7#7925
+{
     return usuario.tag;
 }
+
+/**
+ * Função que retorna o ID de um determinado usuario. EX: 498307500999966749
+ * @param {Discord.User} usuario 
+ * @returns {String} Id do usuario
+ */
 function GetId(usuario)
 {//498307500999966749
     return usuario.id;
 }
+/**
+ * Função que retorna o ID de um determinado usuario. EX: 1ds7
+ * @param {Discord.User} usuario 
+ * @returns {String} Username do usuario
+ */
 function GetUsername(usuario)
-{//1ds7
+{
     return usuario.username;
 }
+/**
+ * Função que retorna o nickname de um determinado usuario no servidor. EX: Michelzinho
+ * @param {Discord.User} usuario 
+ * @returns {String} Nickname do usuario
+ */
 function GetNickname(usuario)
-{//Michelzinho
+{
     return bot.guilds.cache.get(guilda).member(usuario).nickname
+}
+function GetHelp()
+{
+    return "Lobinho é um 'jogo de engano' baseado no 'Werewolf for Telegram'";
+}
+function Testar()
+{
+
 }
 // #endregion
