@@ -35,6 +35,19 @@ bot.on('message', msg => {
         msg.channel.send(getLobby());
     }
 
+    if(msg.content.startsWith("#duracaoDia=") && !jogoAcontecendo && ChecarSeEhHost(msg.author.id))
+    {
+        let duraDia = msg.content.replace("#duracaoDia=","")
+        duracaoDia = Number(duraDia);
+        MandarMSG(canalPraEnviarMsgs,`O dia agora vai ter: ${duracaoDia} segundos e a noite ${duracaoNoite} segundos.`);
+    }
+    if(msg.content.startsWith("#duracaoNoite=") && !jogoAcontecendo && ChecarSeEhHost(msg.author.id))
+    {
+        let duraNoite = msg.content.replace("#duracaoNoite=","")
+        duracaoNoite = Number(duraNoite);
+        MandarMSG(canalPraEnviarMsgs,`A noite agora vai ter: ${duracaoNoite} segundos e o dia ${duracaoDia} segundos.`);
+    }
+
     if(msg.content.startsWith("#start")&& !jogoAcontecendo && lobby.length>0 && ChecarSeEhHost(msg.author.id) )
     {
         iniciarPartida()
@@ -75,9 +88,56 @@ function MandarMSG(idcanal,msg)
     let canal = bot.channels.cache.get(idcanal);
     canal.send(msg);
 }
+/**
+ * 
+ * @param {Discord.User} idUsuario id do usuario que mandou a mensagem no DM
+ * @param {String} msg Conteudo da mensagem:message.content
+ */
 function LerDM(idUsuario,msg)
 {
-    console.log(idUsuario.username," enviou no DM: ",msg);
+    switch (horario) {
+        case "dia":
+            switch (GetCargo(idUsuario)) {
+                case "otario":
+                    if(msg.startsWith(`#${habilidadades.INVESTIGAR}`))
+                    {
+
+                    }
+                    break;
+            
+                case "clarividente":
+                    if(msg.startsWith(`#${habilidadades.INVESTIGAR}`))
+                    {
+
+                    }
+                    break;
+            }
+            break;
+        case "noite":
+            switch (GetCargo(idUsuario)) {
+                case "lobo":
+                    if(msg.startsWith(`#${habilidadades.MATAR}`))
+                    {
+
+                    }
+                    break;
+            
+                case "assassino":
+                    if(msg.startsWith(`#${habilidadades.MATAR}`))
+                    {
+                        
+                    }
+                    break;
+            }
+            break;
+        case "forca":
+            if(msg.startsWith(`#${habilidadades.ENFORCAR}`))
+            {
+                
+            }
+            break;
+    }
+    //console.log(idUsuario.username," enviou no DM: ",msg);
 }
 function PedirEntrarLobby(autorMsg)
 {
@@ -120,8 +180,14 @@ let votos = [];//votos[index]++
 let vivos = [];//vivos[index] = true/false
 let horario = "";
 
-function GetCargos()
+function GetCargo(id)
 {
+    partida.forEach(i =>{
+        if(i.player.id == id)
+        {
+            return i.cargo
+        }
+    })
     
 }
 // #endregion
@@ -206,6 +272,11 @@ function iniciarPartida()
 
 // #region lobinho
 let marcadosPraMorrer = [];
+
+const habilidadades = {
+    INVESTIGAR:"investigar", MATAR:"matar", ENFORCAR:"enforcar"
+}
+
 function NovaRodada()
 {
 
@@ -241,7 +312,7 @@ function Forca()
 {
     MandarMSG(canalPraEnviarMsgs,"Chegou a hora de enforcar alguem")
     for (let index = 0; index < partida.length; index++) {
-        SelecionarAlvo("enforcar",partida[index].player.id);
+        SelecionarAlvo(habilidadades.ENFORCAR,partida[index].player.id);
     }
 
     if(jogoAcontecendo) bot.setTimeout(ficarDeNoite,duracaoForca* 1000)
@@ -260,10 +331,10 @@ function ficarDeDia()
         switch (partida[index].cargo) {
             case "otario":
                 mandarHabilidade = true;
-                habilidade = "investigar";
+                habilidade = habilidadades.INVESTIGAR;
                 break;
             case "clarividente":
-                habilidade = "investigar";
+                habilidade = habilidadades.INVESTIGAR;
                 mandarHabilidade = true;
                 break;   
         }
@@ -288,10 +359,10 @@ function ficarDeNoite()
         switch (partida[index].cargo) {
             case "lobo":
                 mandarHabilidade = true;
-                habilidade = "matar";
+                habilidade = habilidadades.MATAR; 
                 break;
             case "assassino":
-                habilidade = "matar";
+                habilidade = habilidadades.MATAR; 
                 mandarHabilidade = true;
                 break;   
         }
