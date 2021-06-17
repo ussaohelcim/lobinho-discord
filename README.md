@@ -47,4 +47,4 @@ node .
     - [ ] Otario
     - [ ] Clarividente
     - [ ] Assassino
-    - [ ] Suicida
+    - [ ] Homem da floresta
