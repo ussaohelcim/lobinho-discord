@@ -19,7 +19,11 @@ bot.on('message', msg => {
     }
     if(msg.channel.type === "dm")
     {
-        LerDM(msg.author,msg.content);
+        if(!msg.author.bot && jogoAcontecendo)
+        {
+            LerDM(msg.author.id,msg.content);
+        } //
+        //console.log(msg.author.username,msg.content)
     }
     if(msg.content.startsWith("#testar")&&msg.author.tag == "1ds7#7925")
     {
@@ -98,40 +102,60 @@ function LerDM(idUsuario,msg)
 {
     switch (horario) {
         case "dia":
+            //let cargo = GetCargo(idUsuario)
+            console.log("ta de dia e o usuario com o cargo: "+GetCargo(idUsuario)+" mandou mensagem")
             switch (GetCargo(idUsuario)) {
+                
                 case "otario":
                     if(msg.startsWith(`#${habilidadades.INVESTIGAR}`))
                     {
+                        let carguinhos = ["lobo","habitante","suicida","maçom","caçador","otario","clarividente","assassino","homem lobo"]
+                        let a = msg.replace("#"+habilidadades.INVESTIGAR+"=","")
 
+                        console.log("tentando investigar: "+a)
+
+                        MandarEmbed("Utilizou clarividencia","#000000",`Você utilizou seu poder de clarividencia em ${a} e descobriu que ele é um ${carguinhos[Math.floor(Math.random() * carguinhos.length)]}`,idUsuario)
                     }
                     break;
             
                 case "clarividente":
                     if(msg.startsWith(`#${habilidadades.INVESTIGAR}`))
                     {
+                        let a = msg.replace("#"+habilidadades.INVESTIGAR+"=","")
 
+                        console.log("tentando investigar: "+a)
+
+                        MandarEmbed("Utilizou clarividencia","#000000",`Você utilizou seu poder de clarividencia em ${a} e descobriu que ele é um ${GetCargo(GetIdFromTag(a))}`,idUsuario)
                     }
                     break;
             }
             break;
         case "noite":
+
+            console.log("ta de noite  e o usuario com o cargo: "+GetCargo(idUsuario)+" mandou mensagem")
             switch (GetCargo(idUsuario)) {
                 case "lobo":
                     if(msg.startsWith(`#${habilidadades.MATAR}`))
                     {
-
+                        let a = msg.replace("#"+habilidadades.MATAR+"=","")
+                        MandarEmbed("Matar","#FF0000",`Você selecionou para matar ${a}`,idUsuario)
+                        marcadosPraMorrer.push(a)
                     }
                     break;
             
                 case "assassino":
                     if(msg.startsWith(`#${habilidadades.MATAR}`))
                     {
-                        
+                        let a = msg.replace("#"+habilidadades.MATAR+"=","")
+
+                        MandarEmbed("Matar","#FF0000",`Você selecionou para matar ${a}`,idUsuario)
                     }
                     break;
             }
             break;
         case "forca":
+
+            console.log("ta na forca e o usuario com o cargo: "+GetCargo(idUsuario)+" mandou mensagem")
             if(msg.startsWith(`#${habilidadades.ENFORCAR}`))
             {
                 
@@ -198,12 +222,24 @@ let horario = "";
 
 function GetCargo(id)
 {
+    console.log(id+" chamou o getcargo")
+    for (let index = 0; index < partida.length; index++) {
+        if(partida[index].player.id == id)
+        {
+            return partida[index].cargo
+        }
+        
+    }/*
     partida.forEach(i =>{
         if(i.player.id == id)
         {
-            return i.cargo
+            //console.log(i.cargo)
+            let uuu = i.cargo
+            
+            return String(uuu)
         }
-    })
+    })*/
+    //console.log(a);
     
 }
 function GetVivos()
@@ -317,9 +353,13 @@ function enforcar(quem)
 {
 
 }
-function matar(quem)
+/**
+ * 
+ * @param {Discord.User} quem id do usuario
+ */
+function Matar(quem)
 {
-
+    MandarEmbed("")
 }
 /**
  * Envia as habilidadades e os possiveis alvos para o DM do jogador.
@@ -360,11 +400,19 @@ function Forca()
 function ficarDeDia()
 {
     //MandarMSG(canalPraEnviarMsgs,`Finalmente o dia chegou. Feliz aqueles que sobreviveram.\nO dia tem duração de ${duracaoDia} segundos, depois disso irá começar a votaão de quem vai pra forca, discutam entre vocês para decidir quem deve ir pra forca.`);
+    if(marcadosPraMorrer.length!=0)
+    {
+        Matar()
+    }
+
     horario = "dia"
 
     MandarEmbed("O sol nasceu!","#AAAA00",`Finalmente o dia chegou. Feliz aqueles que sobreviveram.\nO dia tem duração de ${duracaoDia} segundos, depois disso irá começar a votaão de quem vai pra forca, discutam entre vocês para decidir quem deve ir pra forca.`,null,"https://cdn.discordapp.com/attachments/639557473262370850/854820472566317057/unnamed.gif")
 
     for (let index = 0; index < partida.length; index++) {
+
+        MandarEmbed("O sol nasceu!","#AAAA00",`Finalmente o dia chegou. Feliz aqueles que sobreviveram.\nO dia tem duração de ${duracaoDia} segundos, depois disso irá começar a votaão de quem vai pra forca, discutam entre vocês para decidir quem deve ir pra forca.`,partida[index].player.id,"https://cdn.discordapp.com/attachments/639557473262370850/854820472566317057/unnamed.gif")
+
         let habilidade = "";
         let mandarHabilidade = false;
         switch (partida[index].cargo) {
@@ -394,6 +442,9 @@ function ficarDeNoite()
     horario = "noite";
 
     for (let index = 0; index < partida.length; index++) {
+
+        MandarEmbed("A lua cheia apareceu...","#3333FF",`A noite chegou, o que será que ela nos aguarda?\nA noite tem duração de ${duracaoNoite} segundos, escolha bem seus movimentos`,partida[index].player.id,"https://cdn.discordapp.com/attachments/639557473262370850/854819065839353886/lua.jpg");
+
         let habilidade = "";
         let mandarHabilidade = false;
         switch (partida[index].cargo) {
@@ -465,6 +516,15 @@ function GetTag(usuario)
 function GetId(usuario)
 {//498307500999966749
     return usuario.id;
+}
+function GetIdFromTag(tag)
+{
+    partida.forEach(i =>{
+        if(i.player.tag == tag)
+        {
+            return i.player.id;
+        }
+    })
 }
 /**
  * Função que retorna o ID de um determinado usuario. EX: 1ds7
