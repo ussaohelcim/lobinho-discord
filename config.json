@@ -1,5 +1,6 @@
 {
     "TOKEN":"token do seu bot",
     "CHANNEL":"id do canal para enviar mensagem",
-    "GUILDA":"id da guilda"
+    "GUILDA":"id da guilda",
+    "MENSAGENS":["Mensagem"]
 }
