@@ -44,13 +44,19 @@ bot.on('message', msg => {
     {
         let duraDia = msg.content.replace("#duracaoDia=","")
         duracaoDia = Number(duraDia);
-        MandarMSG(canalPraEnviarMsgs,`O dia agora vai ter: ${duracaoDia} segundos e a noite ${duracaoNoite} segundos.`);
+        MandarMSG(canalPraEnviarMsgs,`O dia agora vai ter: ${duracaoDia} segundos, a noite ${duracaoNoite} segundos e a forca ${duracaoForca} segundos.`);
     }
     if(msg.content.startsWith("#duracaoNoite=") && !jogoAcontecendo && ChecarSeEhHost(msg.author.id))
     {
         let duraNoite = msg.content.replace("#duracaoNoite=","")
         duracaoNoite = Number(duraNoite);
-        MandarMSG(canalPraEnviarMsgs,`A noite agora vai ter: ${duracaoNoite} segundos e o dia ${duracaoDia} segundos.`);
+        MandarMSG(canalPraEnviarMsgs,`A noite agora vai ter: ${duracaoNoite} segundos, o dia ${duracaoDia} segundos e a forca ${duracaoForca} segundos.`);
+    }
+    if(msg.content.startsWith("#duracaoForca=") && !jogoAcontecendo && ChecarSeEhHost(msg.author.id))
+    {
+        let duraForca = msg.content.replace("#duracaoForca=","")
+        duracaoForca = Number(duraForca);
+        MandarMSG(canalPraEnviarMsgs,`A forca agora vai ter: ${duracaoForca} segundos, o dia ${duracaoDia} segundos e a noite ${duracaoNoite} segundos.`);
     }
 
     if(msg.content.startsWith("#start")&& !jogoAcontecendo && lobby.length>0 && ChecarSeEhHost(msg.author.id) )
@@ -175,6 +181,14 @@ function PedirEntrarLobby(autorMsg)
         msg.channel.send("Existe uma partida em andamento, espere pela proxima partida para conseguir entrar.")
     }
 }
+/**
+ * Função para enviar embeds, que são mensagens com uma caixa em volta de modo que melhora a visualização
+ * @param {String} titulo Titulo da mensagem
+ * @param {String} cor Cor da caixa EX: #FF0000
+ * @param {String} descricao Mensagem que vai ser enviada
+ * @param {Discord.User} id Id para quem vai ser mandado, caso null ele manda para o canal de texto
+ * @param {String} imagem Link para uma imagem
+ */
 function MandarEmbed(titulo, cor, descricao, id, imagem)
 {
     //let footers = ["Jesus é o caminho","Anna Teresa volta pra mim","A tia do Talys é uma delicia kkk","Eu desconfio do preto"]
@@ -392,7 +406,7 @@ function Forca()
 {
     //MandarMSG(canalPraEnviarMsgs,"Chegou a hora de enforcar alguem")
     horario = "forca"
-    MandarEmbed("Hora da forca","#AA0000","Chegou a hora de enforcar alguem. Vote em quem você quer que seja enforcado via DM")
+    MandarEmbed("Hora da forca","#AA0000",`Chegou a hora de enforcar alguem, voces tem ${duracaoForca} para votar. Vote em quem você quer que seja enforcado via DM`)
     for (let index = 0; index < partida.length; index++) {
         SelecionarAlvo(habilidadades.ENFORCAR,partida[index].player.id);
     }
