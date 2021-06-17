@@ -6,7 +6,7 @@ const config = require("./config.json")
 let canalPraEnviarMsgs = config.CHANNEL;
 let botToken = config.TOKEN;
 let guilda = config.GUILDA;
-
+let mensagensCarinho = config.MENSAGENS
 bot.login(botToken);
 
 bot.on('message', msg => {
@@ -83,7 +83,7 @@ bot.on('guildMemberAdd',membro =>{
 // #region Bot commands
 function MandarDM(id,msg)
 {
-    console.log("Mandando DM para o id "+id);
+    //console.log("Mandando DM para o id "+id);
 
     let usuario = bot.users.cache.get(id);
     usuario.send(msg);
@@ -103,16 +103,16 @@ function LerDM(idUsuario,msg)
     switch (horario) {
         case "dia":
             //let cargo = GetCargo(idUsuario)
-            console.log("ta de dia e o usuario com o cargo: "+GetCargo(idUsuario)+" mandou mensagem")
+            //console.log("ta de dia e o usuario com o cargo: "+GetCargo(idUsuario)+" mandou mensagem")
             switch (GetCargo(idUsuario)) {
                 
                 case "otario":
                     if(msg.startsWith(`#${habilidadades.INVESTIGAR}`))
                     {
-                        let carguinhos = ["lobo","habitante","suicida","maçom","caçador","otario","clarividente","assassino","homem lobo"]
+                        let carguinhos = ["lobisomen","habitante","suicida","maçom","caçador","otario","clarividente","assassino","homem da floresta"]
                         let a = msg.replace("#"+habilidadades.INVESTIGAR+"=","")
 
-                        console.log("tentando investigar: "+a)
+                        //console.log("tentando investigar: "+a)
 
                         MandarEmbed("Utilizou clarividencia","#000000",`Você utilizou seu poder de clarividencia em ${a} e descobriu que ele é um ${carguinhos[Math.floor(Math.random() * carguinhos.length)]}`,idUsuario)
                     }
@@ -123,7 +123,7 @@ function LerDM(idUsuario,msg)
                     {
                         let a = msg.replace("#"+habilidadades.INVESTIGAR+"=","")
 
-                        console.log("tentando investigar: "+a)
+                        //console.log("tentando investigar: "+a)
 
                         MandarEmbed("Utilizou clarividencia","#000000",`Você utilizou seu poder de clarividencia em ${a} e descobriu que ele é um ${GetCargo(GetIdFromTag(a))}`,idUsuario)
                     }
@@ -132,9 +132,9 @@ function LerDM(idUsuario,msg)
             break;
         case "noite":
 
-            console.log("ta de noite  e o usuario com o cargo: "+GetCargo(idUsuario)+" mandou mensagem")
+            //console.log("ta de noite  e o usuario com o cargo: "+GetCargo(idUsuario)+" mandou mensagem")
             switch (GetCargo(idUsuario)) {
-                case "lobo":
+                case "lobisomen":
                     if(msg.startsWith(`#${habilidadades.MATAR}`))
                     {
                         let a = msg.replace("#"+habilidadades.MATAR+"=","")
@@ -155,7 +155,7 @@ function LerDM(idUsuario,msg)
             break;
         case "forca":
 
-            console.log("ta na forca e o usuario com o cargo: "+GetCargo(idUsuario)+" mandou mensagem")
+            //console.log("ta na forca e o usuario com o cargo: "+GetCargo(idUsuario)+" mandou mensagem")
             if(msg.startsWith(`#${habilidadades.ENFORCAR}`))
             {
                 
@@ -177,9 +177,9 @@ function PedirEntrarLobby(autorMsg)
 }
 function MandarEmbed(titulo, cor, descricao, id, imagem)
 {
-    let footers = ["Jesus é o caminho","Anna Teresa volta pra mim","A tia do Talys é uma delicia kkk","Eu desconfio do preto"]
+    //let footers = ["Jesus é o caminho","Anna Teresa volta pra mim","A tia do Talys é uma delicia kkk","Eu desconfio do preto"]
     let mensag = new Discord.MessageEmbed();
-    mensag.setColor(cor).setDescription(descricao).setTitle(titulo).setImage(imagem).setFooter(footers[Math.floor(Math.random() * footers.length)] );
+    mensag.setColor(cor).setDescription(descricao).setTitle(titulo).setImage(imagem).setFooter(mensagensCarinho[Math.floor(Math.random() * mensagensCarinho.length)] );
     if(id == null)
     {
         MandarMSG(canalPraEnviarMsgs,mensag)
@@ -195,7 +195,7 @@ function MandarEmbed(titulo, cor, descricao, id, imagem)
 // #region partida
 
 const cargos = [
-    {cargo:"lobo",ajuda:"Você é um lobichomen, e tem a habilidade de matar alguem quando a noite chega. Você ganha caso o jogo termine e não sobre nenhum não lobo"},
+    {cargo:"lobisomen",ajuda:"Você é um lobichomen, e tem a habilidade de matar alguem quando a noite chega. Você ganha caso o jogo termine e não sobre nenhum não lobo"},
 
     {cargo:"habitante",ajuda:"Você é um habitante da vila. Você ganha caso o jogo termine e sobre algum habitante"},
 
@@ -211,7 +211,7 @@ const cargos = [
 
     {cargo:"assassino",ajuda:"Você é um assassino, e tem a habilidade de matar alguem quando a noite chega. Você ganha caso continue vivo até o fim da partida."},
 
-    {cargo:"homem lobo",ajuda:"Você é um habitante da vila, porem como você passou toda sua vida na floresta o clarividente vai achar que você é um lobo. Você ganha caso o jogo termine e sobre algum habitante."},
+    {cargo:"homem da floresta",ajuda:"Você é um habitante da vila, porem como você passou toda sua vida na floresta o clarividente vai achar que você é um lobo. Você ganha caso o jogo termine e sobre algum habitante."},
 ];
 
 let partida = [];//{player:usuario,cargo:"cargo"} 
@@ -222,7 +222,7 @@ let horario = "";
 
 function GetCargo(id)
 {
-    console.log(id+" chamou o getcargo")
+    //console.log(id+" chamou o getcargo")
     for (let index = 0; index < partida.length; index++) {
         if(partida[index].player.id == id)
         {
@@ -245,6 +245,10 @@ function GetCargo(id)
 function GetVivos()
 {
 
+}
+function ChecarSeAcabou()
+{
+    
 }
 // #endregion
 
@@ -290,6 +294,8 @@ function limparLobby()
  */
 function iniciarPartida()
 {
+    bot.user.setActivity({name:"Lobinhooo", type:"PLAYING"})
+
     let quantidadeSolitarios = Math.floor(Math.random() * Math.floor(lobby.length/2))+1;
     //numero randomico entre 1 e quantidade de jogadores // 2 
     // ex: 8 jogadores, numero de solitarios entre 1 e 4
@@ -300,7 +306,7 @@ function iniciarPartida()
     let solitariosSorteados = 0
     let num;
     let imgCargos = {
-        "lobo":"https://media.discordapp.net/attachments/639557473262370850/854829664932986890/Lobisomem.png?width=1202&height=676",
+        "lobisomen":"https://media.discordapp.net/attachments/639557473262370850/854829664932986890/Lobisomem.png?width=1202&height=676",
         "habitante":"https://media.discordapp.net/attachments/639557473262370850/854831073626947624/villager-minecraft-01.png?width=1202&height=676",
         "suicida":"https://media.discordapp.net/attachments/639557473262370850/854830670471233546/S_A_D_B_O_Y_S_lightmode.png",
         "maçom":"https://media.discordapp.net/attachments/639557473262370850/854830098477350952/mourao.jpg",
@@ -308,7 +314,7 @@ function iniciarPartida()
         "otario":"https://media.discordapp.net/attachments/639557473262370850/854830518339764224/clarividencia.jpeg",
         "clarividente":"https://media.discordapp.net/attachments/639557473262370850/854830518339764224/clarividencia.jpeg",
         "assassino":"https://media.discordapp.net/attachments/639557473262370850/854831302012174366/tasso_da_silveira_1.png?width=1202&height=676",
-        "homem lobo":"https://media.discordapp.net/attachments/639557473262370850/854830340849401917/bbd6b33db14c4e9c08c276c808371af73c431235_full.jpg"
+        "homem da floresta":"https://media.discordapp.net/attachments/639557473262370850/854830340849401917/bbd6b33db14c4e9c08c276c808371af73c431235_full.jpg"
     }
     
     for (let index = 0; index < lobby.length; index++) {
@@ -334,7 +340,7 @@ function iniciarPartida()
     limparLobby();
     //Esperar(30000,"noite");
     ficarDeNoite();
-    console.log(partida)
+    //console.log(partida)
 }
 // #endregion
 
@@ -448,7 +454,7 @@ function ficarDeNoite()
         let habilidade = "";
         let mandarHabilidade = false;
         switch (partida[index].cargo) {
-            case "lobo":
+            case "lobisomen":
                 mandarHabilidade = true;
                 habilidade = habilidadades.MATAR; 
                 break;
@@ -461,7 +467,7 @@ function ficarDeNoite()
         else
         {
             //MandarDM(partida[index].player.id,"Você foi dormir");
-            MandarEmbed("A mimir","#5555EE","Você foi dormir",partida[index].player.id)
+            MandarEmbed("A mimir 😴","#5555EE","Você foi dormir",partida[index].player.id)
         } 
     }
     if(jogoAcontecendo) bot.setTimeout(ficarDeDia,duracaoNoite* 1000)
