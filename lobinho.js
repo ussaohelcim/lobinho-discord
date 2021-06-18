@@ -332,6 +332,12 @@ function ChecarSeAcabou()
         motivo = "Apenas os habitantes estão vivos"
         acabaste = true;
     }
+    if(quantidadeHabitantes == 0 && quantidadeLobos == 0 && quantidadeAssassinos == 0 && quantidadeSuicidas > 0)
+    {
+        jogoAcontecendo= false;
+        motivo = "Apenas o suicida ficou vivo, e ele só ganha se ele morrer na forca"
+        acabaste = true;
+    }
     if(acabaste)
     {
         AcabarPartida();
@@ -353,6 +359,10 @@ function AcabarPartida()
     if(suicidaMorreuNaForca)
     {
         vencedores+= "```"+suicidaVencedor.player.tag+" cargo: suicida"
+    }
+    else if(quantidadeSuicidas>0)
+    {
+        vencedores = "Ninguem"
     }
     else
     {
