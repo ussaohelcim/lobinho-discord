@@ -30,11 +30,11 @@ bot.on('message', msg => {
         //MandarEmbed("Titulo","#FF0000","Estou apenas tostando essa merda");
         //CriarRole()
         //console.log(GetIdFromTag(msg.author.tag)) 
-        partida.push({player:lobby[0],cargo:"clarividente",ajuda:"Você é um clarividente habitante da vila, porem com uma habilidade especial: você consegue saber o cargo que as pessoas são. Você ganha caso o jogo termine e sobre algum habitante"})
-        partida.push({player:lobby[1],cargo:"homem da floresta",ajuda:"Você é um habitante da vila, porem como você passou toda sua vida na floresta o clarividente vai achar que você é um lobo. Você ganha caso o jogo termine e sobre algum habitante."})
+        //partida.push({player:lobby[0],cargo:"clarividente",ajuda:"Você é um clarividente habitante da vila, porem com uma habilidade especial: você consegue saber o cargo que as pessoas são. Você ganha caso o jogo termine e sobre algum habitante"})
+        //partida.push({player:lobby[1],cargo:"homem da floresta",ajuda:"Você é um habitante da vila, porem como você passou toda sua vida na floresta o clarividente vai achar que você é um lobo. Você ganha caso o jogo termine e sobre algum habitante."})
 
-        jogoAcontecendo = true
-        ficarDeNoite();
+        ///jogoAcontecendo = true
+        //ficarDeNoite();
     }
     if(msg.content.startsWith("#entrar"))
     {
@@ -48,6 +48,10 @@ bot.on('message', msg => {
     if(msg.content.startsWith("#lobby"))
     {
         msg.channel.send(getLobby());
+    }
+    if(msg.content.startsWith("#help"))
+    {
+        MandarEmbed("Ajuda","#000000",GetHelp())
     }
 
     if(msg.content.startsWith("#duracaoDia=") && !jogoAcontecendo && ChecarSeEhHost(msg.author.id))
@@ -89,6 +93,7 @@ bot.on('message', msg => {
 
 bot.on('ready',function(){
     console.log("lobinho ligado, auuuuuuuu");
+    //MandarEmbed("O pai ta on","#FFAAFF","O bot está ligado e pronto para jogar o lobinho")
 })
 
 bot.on('guildMemberAdd',membro =>{
@@ -258,6 +263,10 @@ function ShowVivos()
         m+= "``"+partida[index].player.tag+"``,"
     }
     MandarEmbed("Jogadores vivos","#5555FF","Os seguintes jogadores ainda estão vivos: "+m)
+    for (let index = 0; index < partida.length; index++) {
+        MandarEmbed("Jogadores vivos","#5555FF","Os seguintes jogadores ainda estão vivos: "+m,partida[index].player.id)
+        
+    }
 }
 
 function GetCargo(id)
@@ -290,6 +299,7 @@ let quantidadeHabitantes=0;
 let suicidaMorreuNaForca = false;
 let motivo = ""
 let maçonaria = ""
+
 function ChecarSeAcabou()
 {
     motivo = ""
@@ -337,11 +347,12 @@ function ChecarSeAcabou()
 let suicidaVencedor = ""
 function AcabarPartida()
 {
+    alcateia = ""
     bot.user.setActivity({name:"pornô de incesto", type:"WATCHING"})
     let vencedores = ""
     if(suicidaMorreuNaForca)
     {
-        vencedores+= suicidaVencedor.player.tag
+        vencedores+= "```"+suicidaVencedor.player.tag+" cargo: suicida"
     }
     else
     {
@@ -361,15 +372,16 @@ function AcabarPartida()
 }
 // #endregion
 
+
 // #region lobby; duracao, iniciar partica, host, entrar lobby, limpar lobby, get lobby, matar 
 let lobby = [];//adicionar quem vai estar jogando
 //lobby[i].username = 1ds7
 //lobby[i].tag = 1ds7#2469
 //lobby[i].id = 1818416834183618364864
-let duracaoDia = 10 ;
-let duracaoNoite = 15 ;
-let duracaoForca = 10 ;
-
+let duracaoDia = 30 ;
+let duracaoNoite = 30 ;
+let duracaoForca = 30 ;
+let alcateia = []
 function ChecarSeEhHost(id)
 {
     return id == lobby[0].id
@@ -377,7 +389,7 @@ function ChecarSeEhHost(id)
 
 function entrarLobby(usuario)
 {
-    if(lobby.length==0) MandarMSG(canalPraEnviarMsgs,usuario.username+", você é o host da partida.")
+    if(lobby.length==0) MandarMSG(canalPraEnviarMsgs,usuario.username+", você é o host da partida.\nQuando todos os jogadores estiverem no lobby você pode iniciar mandando ``#start``\nVocê tambem pode mudar a duração dos horarios com o comando: ``#duracaoDia=60``,``#duracaoNoite=60``,``#duracaoForca=60``, pode trocar o '60' por qualquer outros numeros, vai ser em segundos.")
 
     lobby.push(usuario);
     MandarEmbed("Lobby","#000000",`${usuario.username} entrou no lobby\n${getLobby()}`)
@@ -438,6 +450,8 @@ function iniciarPartida()
         //MandarDM(lobby[index].id,cargos[index].ajuda);
         if(cargos[num].cargo == "lobisomen")
         {
+            //alcateia.push(partida[index].player.tag)
+            alcateia+="``"+partida[index].player.tag+"``"
             quantidadeLobos++;
         }
         if(cargos[num].cargo == "habitante")
@@ -488,6 +502,10 @@ function iniciarPartida()
         {
             MandarEmbed("Membros da maçonaria","#FFFF22",maçonaria,a.player.id)
         }
+        if(a.cargo=="lobisomen" && alcateia != "")
+        {
+            MandarEmbed("Membros da alcateia","#FFFF22",alcateia,a.player.id)
+        }
     })
     
     //bot.setTimeout(abrirVotacao,10000)
@@ -519,7 +537,7 @@ function enforcar(quem)
 
 function Matar()
 {
-    console.log(marcadosPraMorrer)
+    console.log("marcados pra morrer:",marcadosPraMorrer)
 
     let assassinados = []
     for (let index = 0; index < partida.length; index++) {
@@ -558,6 +576,7 @@ function Matar()
                         quantidadeHabitantes--;
                         break
                 }
+                console.log("tirando o: "+partida[index].player.tag+" da partida")
                 partida.splice(partida[index],1)
             }
             
@@ -578,7 +597,7 @@ function Matar()
  */
 function SelecionarAlvo(habilidade,eleMesmo)
 {
-    let mensagem = `Selecione o alvo para você usar sua habilidade.\n#`+habilidade+`=alvo\nalvo = nome do alvo.\nCopie e cole todo o texto de quem você quer selecionar\n`;
+    let mensagem = `Selecione o alvo para você usar sua habilidade.\n#`+habilidade+`=alvo\nalvo = nome do alvo.\nCopie e cole todo o texto de quem você quer selecionar aqui mesmo no privado\n`;
 
     partida.forEach(i =>{
         if(eleMesmo != i.player.id) mensagem+= "```#"+habilidade+"="+i.player.tag +"```,";
@@ -589,7 +608,11 @@ function SelecionarAlvo(habilidade,eleMesmo)
     MandarEmbed("Hora de agir","#00000",mensagem,eleMesmo)
 
 }
+let teste = []
+function PodeUsarHabilidade()
+{
 
+}
 
 
 /**
@@ -601,7 +624,7 @@ function Forca()
     if(jogoAcontecendo)
     {
         horario = "forca"
-        MandarEmbed("Hora da forca","#AA0000",`Chegou a hora de enforcar alguem, vocês tem ${duracaoForca} segundos para votar. Vote em quem você quer que seja enforcado via DM`)
+        MandarEmbed("Hora da forca","#AA0000",`Chegou a hora de enforcar alguem, vocês tem ${duracaoForca} segundos para votar. Vote em quem você quer que seja enforcado via mensagem privada`)
         for (let index = 0; index < partida.length; index++) 
         {
             SelecionarAlvo(habilidadades.ENFORCAR,partida[index].player.id);
@@ -690,6 +713,10 @@ function ficarDeNoite()
                 cargoDoMaisVotado = partida[index].cargo;
                 MandarEmbed("Faliceu","#000000","Você morreu enforcado",maisVotado.player.id)
                 partida.splice(index,1)
+            }
+            else
+            {
+                MandarEmbed("Crack...","#FF0000","```"+maisVotado.player.tag+"``` foi enforcado com "+maisVotado.votos+" votos",partida[index].player.id,"https://cdn.discordapp.com/attachments/639557473262370850/855465153389789184/unknown.png");
             }
             
         }
@@ -869,7 +896,7 @@ function GetNickname(usuario)
 }
 function GetHelp()
 {
-    return "Lobinho é um 'jogo de engano' baseado no 'Werewolf for Telegram'";
+    return "Comandos:\nPedir para entrar no lobby\n``#entrar``\nVer quem ta no lobby\n``#lobby``\nPedir para iniciar\n``#start``\nMudar duração do dia:\n``#duracaoDia=60``\nMudar duração da noite:\n``#duracaoNoite=60``\nMudar duração da forca:\n``#duracaoForca=60``";
 }
 function Testar()
 {
