@@ -36,9 +36,13 @@ bot.on('message', msg => {
         jogoAcontecendo = true
         ficarDeNoite();
     }
-    if(msg.content.startsWith("#queroJogar"))
+    if(msg.content.startsWith("#entrar"))
     {
         PedirEntrarLobby(msg.author);
+    }
+    if(msg.content.startsWith("#queroJogar"))
+    {
+        MandarMSG(canalPraEnviarMsgs,"Agora é apenas: `#entrar`")
     }
 
     if(msg.content.startsWith("#lobby"))
@@ -126,7 +130,7 @@ function LerDM(idUsuario,msg)
 
                         //console.log("tentando investigar: "+a)
 
-                        MandarEmbed("Utilizou clarividencia","#000000",`Você utilizou seu poder de clarividencia em ${a} e descobriu que ele é um ${carguinhos[Math.floor(Math.random() * carguinhos.length)]}`,idUsuario)
+                        MandarEmbed("Utilizou clarividencia","#000000","Você utilizou seu poder de clarividencia em ``"+ a +"`` e descobriu que ele é um ``"+ carguinhos[Math.floor(Math.random() * carguinhos.length)]+"``",idUsuario)
                     }
                     break;
             
@@ -137,7 +141,7 @@ function LerDM(idUsuario,msg)
 
                         //console.log("tentando investigar: "+a)
 
-                        MandarEmbed("Utilizou clarividencia","#000000",`Você utilizou seu poder de clarividencia em ${a} e descobriu que ele é um `+(GetCargo(GetIdFromTag(a)) == "homem da floresta" ? "lobisomen" : GetCargo(GetIdFromTag(a))),idUsuario)
+                        MandarEmbed("Utilizou clarividencia","#000000","Você utilizou seu poder de clarividencia em ``"+ a +"`` e descobriu que ele é um ``"+(GetCargo(GetIdFromTag(a)) == "homem da floresta" ? "lobisomen" : GetCargo(GetIdFromTag(a)))+"``",idUsuario)
                     }
                     break;
             }
@@ -172,7 +176,7 @@ function LerDM(idUsuario,msg)
             {
                 let a = msg.replace("#"+habilidadades.ENFORCAR+"=","")
 
-                MandarEmbed("Votou para enforcar","#000000",`Você selecionou para enforcar ${a}`,idUsuario)
+                MandarEmbed("Votou para enforcar","#000000","Você selecionou para enforcar ``"+a+"``",idUsuario)
 
                 console.log(a+" id: "+GetIdFromTag(a))
 
@@ -247,6 +251,15 @@ let votos = [];//votos[index]++
 let vivos = [];//vivos[index] = true/false
 let horario = "";
 
+function ShowVivos()
+{
+    let m = ""
+    for (let index = 0; index < partida.length; index++) {
+        m+= "``"+partida[index].player.tag+"``,"
+    }
+    MandarEmbed("Jogadores vivos","#5555FF","Os seguintes jogadores ainda estão vivos: "+m)
+}
+
 function GetCargo(id)
 {
     //console.log(id+" chamou o getcargo")
@@ -269,10 +282,7 @@ function GetCargo(id)
     //console.log(a);
     
 }
-function GetVivos()
-{
 
-}
 let quantidadeLobos=0;
 let quantidadeAssassinos=0;
 let quantidadeSuicidas=0;
@@ -351,14 +361,14 @@ function AcabarPartida()
 }
 // #endregion
 
-// #region lobby; duracao, iniciar partica, host, entrar lobby, limpar lobby, get lobby
+// #region lobby; duracao, iniciar partica, host, entrar lobby, limpar lobby, get lobby, matar 
 let lobby = [];//adicionar quem vai estar jogando
 //lobby[i].username = 1ds7
 //lobby[i].tag = 1ds7#2469
 //lobby[i].id = 1818416834183618364864
-let duracaoDia = 30 ;
-let duracaoNoite = 45 ;
-let duracaoForca = 60 ;
+let duracaoDia = 10 ;
+let duracaoNoite = 15 ;
+let duracaoForca = 10 ;
 
 function ChecarSeEhHost(id)
 {
@@ -378,7 +388,7 @@ function getLobby()
 {
     msg = "Atualmente, os seguintes jogadores estão no lobby: "
     lobby.forEach(jogador =>{
-        msg+= jogador.tag+",";
+        msg+="``"+jogador.tag+"``,";
     })
     msg = String(msg).substring(0,msg.length-1)
     //bot.channels.cache.get(canalPraEnviarMsgs).send(msg);
@@ -509,6 +519,8 @@ function enforcar(quem)
 
 function Matar()
 {
+    console.log(marcadosPraMorrer)
+
     let assassinados = []
     for (let index = 0; index < partida.length; index++) {
 
@@ -517,7 +529,6 @@ function Matar()
             {
                 assassinados.push(partida[index])
                 
-
                 switch (partida[index].cargo) {
                     case "lobisomen":
                         quantidadeLobos--;
@@ -567,12 +578,12 @@ function Matar()
  */
 function SelecionarAlvo(habilidade,eleMesmo)
 {
-    let mensagem = `Selecione o alvo para você usar sua habilidade.\n#`+habilidade+`=alvo\nalvo = nome do alvo.\nOs alvos são:\n`;
+    let mensagem = `Selecione o alvo para você usar sua habilidade.\n#`+habilidade+`=alvo\nalvo = nome do alvo.\nCopie e cole todo o texto de quem você quer selecionar\n`;
 
     partida.forEach(i =>{
-        if(eleMesmo != i.player.id) mensagem+= "```"+i.player.tag +"```,";
+        if(eleMesmo != i.player.id) mensagem+= "```#"+habilidade+"="+i.player.tag +"```,";
     })
-    mensagem += "\nExemplo: ```#"+habilidade+"=1ds7#2469```"
+    //mensagem += "\nExemplo: ```#"+habilidade+"=1ds7#2469```"
 
     //MandarDM(eleMesmo,mensagem);
     MandarEmbed("Hora de agir","#00000",mensagem,eleMesmo)
@@ -590,7 +601,7 @@ function Forca()
     if(jogoAcontecendo)
     {
         horario = "forca"
-        MandarEmbed("Hora da forca","#AA0000",`Chegou a hora de enforcar alguem, voces tem ${duracaoForca} para votar. Vote em quem você quer que seja enforcado via DM`)
+        MandarEmbed("Hora da forca","#AA0000",`Chegou a hora de enforcar alguem, vocês tem ${duracaoForca} segundos para votar. Vote em quem você quer que seja enforcado via DM`)
         for (let index = 0; index < partida.length; index++) 
         {
             SelecionarAlvo(habilidadades.ENFORCAR,partida[index].player.id);
@@ -616,6 +627,7 @@ function ficarDeDia()
     ChecarSeAcabou();
     if(jogoAcontecendo)
     {
+        ShowVivos()
         horario = "dia"
 
         MandarEmbed("O sol nasceu!","#AAAA00",`Finalmente o dia chegou. Feliz aqueles que sobreviveram.\nO dia tem duração de ${duracaoDia} segundos, depois disso irá começar a votaão de quem vai pra forca, discutam entre vocês para decidir quem deve ir pra forca.`,null,"https://cdn.discordapp.com/attachments/639557473262370850/854820472566317057/unnamed.gif")
@@ -712,13 +724,11 @@ function ficarDeNoite()
                 quantidadeHabitantes--;
                 break
         }
-        MandarEmbed("Crack...","#FF0000",`${maisVotado.player.tag} foi enforcado com ${maisVotado.votos} votos`)
+        MandarEmbed("Crack...","#FF0000","```"+maisVotado.player.tag+"``` foi enforcado com "+maisVotado.votos+" votos",null,"https://cdn.discordapp.com/attachments/639557473262370850/855465153389789184/unknown.png");
     }
     ChecarSeAcabou();
     if(jogoAcontecendo)
     {
-        
-
         MandarEmbed("A lua cheia apareceu...","#3333FF",`A noite chegou, o que será que ela nos aguarda?\nA noite tem duração de ${duracaoNoite} segundos, escolha bem seus movimentos`,null,"https://cdn.discordapp.com/attachments/639557473262370850/854819065839353886/lua.jpg");
 
         horario = "noite";
