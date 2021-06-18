@@ -762,6 +762,7 @@ function ficarDeNoite()
                 break
         }
         MandarEmbed("Crack...","#FF0000","```"+maisVotado.player.tag+"``` foi enforcado com "+maisVotado.votos+" votos",null,"https://cdn.discordapp.com/attachments/639557473262370850/855465153389789184/unknown.png");
+        votadosPraForca = []
     }
     ChecarSeAcabou();
     if(jogoAcontecendo)
