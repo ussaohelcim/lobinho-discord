@@ -391,7 +391,7 @@ function AcabarPartida()
     maçonaria = "";
     suicidaVencedor = ""
     votadosPraForca = []
-    
+
     MostrarParticipantes();
 }
 // #endregion
@@ -468,7 +468,7 @@ function iniciarPartida()
 
         partida.push({player:lobby[index],cargo:cargos[num].cargo,ajuda:cargos[num].ajuda});
 
-        participantes.push({nome:lobby[index].player.tag,cargo:cargos[num]});//
+        participantes.push({nome:lobby[index].tag,cargo:cargos[num].cargo});//
         //partida.push({player:lobby[index],role:roles[num]})
         // array da partida esta no fim da regiao partida
 
