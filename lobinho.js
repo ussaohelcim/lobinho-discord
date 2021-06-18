@@ -256,6 +256,8 @@ let votos = [];//votos[index]++
 let vivos = [];//vivos[index] = true/false
 let horario = "";
 
+let participantes = []//{nome:tag,cargo:cargo}
+
 function ShowVivos()
 {
     let m = ""
@@ -269,6 +271,16 @@ function ShowVivos()
     }
 }
 
+function MostrarParticipantes()
+{
+    let mensagem = "Os participantes foram:\n"
+    for (let index = 0; index < participantes.length; index++) {
+        mensagem += "``"+participantes[index].nome+" cargo: "+participantes[index].cargo+"``,"
+    
+    }
+    MandarEmbed("Participantes","#000000",mensagem)
+    participantes = []
+}
 function GetCargo(id)
 {
     //console.log(id+" chamou o getcargo")
@@ -379,6 +391,8 @@ function AcabarPartida()
     maçonaria = "";
     suicidaVencedor = ""
     votadosPraForca = []
+    
+    MostrarParticipantes();
 }
 // #endregion
 
@@ -454,6 +468,7 @@ function iniciarPartida()
 
         partida.push({player:lobby[index],cargo:cargos[num].cargo,ajuda:cargos[num].ajuda});
 
+        participantes.push({nome:lobby[index].player.tag,cargo:cargos[num]});//
         //partida.push({player:lobby[index],role:roles[num]})
         // array da partida esta no fim da regiao partida
 
