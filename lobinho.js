@@ -29,7 +29,12 @@ bot.on('message', msg => {
     {
         //MandarEmbed("Titulo","#FF0000","Estou apenas tostando essa merda");
         //CriarRole()
-        console.log(GetIdFromTag(msg.author.tag)) 
+        //console.log(GetIdFromTag(msg.author.tag)) 
+        partida.push({player:lobby[0],cargo:"clarividente",ajuda:"Você é um clarividente habitante da vila, porem com uma habilidade especial: você consegue saber o cargo que as pessoas são. Você ganha caso o jogo termine e sobre algum habitante"})
+        partida.push({player:lobby[1],cargo:"homem da floresta",ajuda:"Você é um habitante da vila, porem como você passou toda sua vida na floresta o clarividente vai achar que você é um lobo. Você ganha caso o jogo termine e sobre algum habitante."})
+
+        jogoAcontecendo = true
+        ficarDeNoite();
     }
     if(msg.content.startsWith("#queroJogar"))
     {
@@ -87,7 +92,7 @@ bot.on('guildMemberAdd',membro =>{
 })
 // #endregion
 
-// #region Bot commands; Mandar mensagens, ler dm, pedir entrar lobby, mandar embed
+// #region Bot commands; Mandar mensagens, ler dm para usar habilidades, pedir entrar lobby, mandar embed
 function MandarDM(id,msg)
 {
     //console.log("Mandando DM para o id "+id);
@@ -132,7 +137,7 @@ function LerDM(idUsuario,msg)
 
                         //console.log("tentando investigar: "+a)
 
-                        MandarEmbed("Utilizou clarividencia","#000000",`Você utilizou seu poder de clarividencia em ${a} e descobriu que ele é um ${GetCargo(GetIdFromTag(a))}`,idUsuario)
+                        MandarEmbed("Utilizou clarividencia","#000000",`Você utilizou seu poder de clarividencia em ${a} e descobriu que ele é um `+(GetCargo(GetIdFromTag(a)) == "homem da floresta" ? "lobisomen" : GetCargo(GetIdFromTag(a))),idUsuario)
                     }
                     break;
             }
@@ -154,7 +159,7 @@ function LerDM(idUsuario,msg)
                     if(msg.startsWith(`#${habilidadades.MATAR}`))
                     {
                         let a = msg.replace("#"+habilidadades.MATAR+"=","")
-
+                        marcadosPraMorrer.push(a)
                         MandarEmbed("Matar","#FF0000",`Você selecionou para matar ${a}`,idUsuario)
                     }
                     break;
@@ -224,7 +229,7 @@ const cargos = [
 
     {cargo:"maçom",ajuda:"Você é um maçom habitante da vila, porem com uma habilidade especial: você consegue saber quem tambem é maçom. Você ganha caso o jogo termine e sobre algum habitante"},
 
-    {cargo:"caçador",ajuda:"Você é um habitante da vila, porem com uma habilidade especial: caso alguem te ataque você consegue escolher alguem pra matar. Você ganha caso o jogo termine e sobre algum habitante"},
+    //{cargo:"caçador",ajuda:"Você é um habitante da vila, porem com uma habilidade especial: caso alguem te ataque você consegue escolher alguem pra matar. Você ganha caso o jogo termine e sobre algum habitante"},
 
     {cargo:"otario",ajuda:"Você é um clarividente habitante da vila, porem com uma habilidade especial: você consegue saber o cargo que as pessoas são. Você ganha caso o jogo termine e sobre algum habitante"},
 
@@ -274,6 +279,7 @@ let quantidadeSuicidas=0;
 let quantidadeHabitantes=0;
 let suicidaMorreuNaForca = false;
 let motivo = ""
+let maçonaria = ""
 function ChecarSeAcabou()
 {
     motivo = ""
@@ -299,7 +305,7 @@ function ChecarSeAcabou()
         motivo = "Apenas os lobos estão vivos"
         acabaste = true;
     }
-    if(quantidadeHabitantes > 0 && quantidadeLobos == 0 && quantidadeAssassinos == 0)
+    if(quantidadeHabitantes > 0 && quantidadeLobos == 0 && quantidadeAssassinos == 0 && quantidadeSuicidas == 0)
     {
         //habitantes ganharam
         jogoAcontecendo= false;
@@ -308,6 +314,7 @@ function ChecarSeAcabou()
     }
     if(acabaste)
     {
+        AcabarPartida();
         quantidadeLobos=0;
         quantidadeAssassinos=0;
         quantidadeSuicidas=0;
@@ -317,15 +324,30 @@ function ChecarSeAcabou()
     }
     
 }
-
+let suicidaVencedor = ""
 function AcabarPartida()
 {
+    bot.user.setActivity({name:"pornô de incesto", type:"WATCHING"})
     let vencedores = ""
+    if(suicidaMorreuNaForca)
+    {
+        vencedores+= suicidaVencedor.player.tag
+    }
+    else
+    {
+        for (let index = 0; index < partida.length; index++) {
+            vencedores+="```"+ partida[index].player.tag+" cargo: "+partida[index].cargo+"```"
+        }
+        
+    }
     for (let index = 0; index < partida.length; index++) {
-        vencedores+="```"+ partida[index].player.tag+" cargo: "+partida[index].cargo+"```"
+        MandarEmbed("Fim de jogo","#123456","Os vencedores foram:\n"+vencedores+"\nMotivo:\n```"+motivo+"```",partida[index].player.id)
     }
     MandarEmbed("Fim de jogo","#123456","Os vencedores foram:\n"+vencedores+"\nMotivo:\n```"+motivo+"```")
     partida = [];
+    maçonaria = "";
+    suicidaVencedor = ""
+    votadosPraForca = []
 }
 // #endregion
 
@@ -334,9 +356,9 @@ let lobby = [];//adicionar quem vai estar jogando
 //lobby[i].username = 1ds7
 //lobby[i].tag = 1ds7#2469
 //lobby[i].id = 1818416834183618364864
-let duracaoDia = 10 ;
-let duracaoNoite = 5 ;
-let duracaoForca = 15 ;
+let duracaoDia = 30 ;
+let duracaoNoite = 45 ;
+let duracaoForca = 60 ;
 
 function ChecarSeEhHost(id)
 {
@@ -348,9 +370,9 @@ function entrarLobby(usuario)
     if(lobby.length==0) MandarMSG(canalPraEnviarMsgs,usuario.username+", você é o host da partida.")
 
     lobby.push(usuario);
-
-    MandarMSG(canalPraEnviarMsgs,`${usuario.username} entrou no lobby`)
-    MandarMSG(canalPraEnviarMsgs,getLobby())
+    MandarEmbed("Lobby","#000000",`${usuario.username} entrou no lobby\n${getLobby()}`)
+    //MandarMSG(canalPraEnviarMsgs,`${usuario.username} entrou no lobby`)
+    //MandarMSG(canalPraEnviarMsgs,getLobby())
 }
 function getLobby()
 {
@@ -395,6 +417,7 @@ function iniciarPartida()
     }
     
     for (let index = 0; index < lobby.length; index++) {
+        
         num = Math.floor(Math.random()*cargos.length) 
 
         partida.push({player:lobby[index],cargo:cargos[num].cargo,ajuda:cargos[num].ajuda});
@@ -418,6 +441,7 @@ function iniciarPartida()
         }
         if(cargos[num].cargo == "maçom")
         {
+            maçonaria+= "```"+partida[index].player.tag+"```"
             quantidadeHabitantes++;
 
         }
@@ -450,6 +474,10 @@ function iniciarPartida()
     partida.forEach(a =>{
         //MandarDM(a.player.id,a.ajuda);
         MandarEmbed(a.cargo == "otario" ? "clarividente" : a.cargo,"#FFFFFF",a.ajuda,a.player.id,imgCargos[a.cargo]);
+        if(a.cargo=="maçom" && maçonaria != "")
+        {
+            MandarEmbed("Membros da maçonaria","#FFFF22",maçonaria,a.player.id)
+        }
     })
     
     //bot.setTimeout(abrirVotacao,10000)
@@ -478,13 +506,59 @@ function enforcar(quem)
 {
 
 }
-/**
- * 
- * @param {Discord.User} quem id do usuario
- */
-function Matar(quem)
+
+function Matar()
 {
-    MandarEmbed("")
+    let assassinados = []
+    for (let index = 0; index < partida.length; index++) {
+
+        for (let j = 0; j < marcadosPraMorrer.length; j++) {
+            if(marcadosPraMorrer[j] == partida[index].player.tag)
+            {
+                assassinados.push(partida[index])
+                
+
+                switch (partida[index].cargo) {
+                    case "lobisomen":
+                        quantidadeLobos--;
+                        break;
+                    case "habitante":
+                        quantidadeHabitantes--;
+                        break
+                    case "suicida":
+                        quantidadeSuicidas--;
+                        break
+                    case "maçom":
+                        quantidadeHabitantes--;
+                        break
+                    case "caçador":
+                        quantidadeHabitantes--;
+                        break
+                    case "otario":
+                        quantidadeHabitantes--;
+                        break
+                    case "clarividente":
+                        quantidadeHabitantes--;
+                        break
+                    case "assassino":
+                        quantidadeAssassinos--;
+                        break
+                    case "homem da floresta":
+                        quantidadeHabitantes--;
+                        break
+                }
+                partida.splice(partida[index],1)
+            }
+            
+        }
+    }
+    let mortos = ""
+    for (let index = 0; index < assassinados.length; index++) {
+        mortos += "```"+assassinados[index].player.tag+"```\n"
+        
+    }
+    MandarEmbed("CARALHO!","#FF0000","Os seguintes jogadores foram encontrado mortos: "+mortos,null,null)
+    marcadosPraMorrer = [];
 }
 /**
  * Envia as habilidadades e os possiveis alvos para o DM do jogador.
@@ -524,10 +598,7 @@ function Forca()
 
         if(jogoAcontecendo) bot.setTimeout(ficarDeNoite,duracaoForca* 1000)
     }
-    else
-    {
-        AcabarPartida()
-    }
+
     //MandarMSG(canalPraEnviarMsgs,"Chegou a hora de enforcar alguem")
     
 }
@@ -537,6 +608,11 @@ function Forca()
 */
 function ficarDeDia()
 {
+    if(marcadosPraMorrer.length!=0)
+    {
+        Matar()
+    }
+
     ChecarSeAcabou();
     if(jogoAcontecendo)
     {
@@ -564,16 +640,8 @@ function ficarDeDia()
         }
         bot.setTimeout(Forca,duracaoDia* 1000)
     }
-    else
-    {
-        AcabarPartida()
 
-    }
-
-    if(marcadosPraMorrer.length!=0)
-    {
-        Matar()
-    }
+    
     
     //console.log("ta de dia e esses sãos os jogadores: ",partida," a quantidade de jogadores é: "+partida.length)
  
@@ -584,70 +652,72 @@ function ficarDeDia()
 */
 function ficarDeNoite()
 {// de noite as habilidades são liberadas
+    if(votadosPraForca.length > 0)
+    {
+        let maisVotado = votadosPraForca[0]
+
+        /*votadosPraForca.forEach(i =>{
+            if(i.votos > maisVotado.votos)
+            {
+                maisVotado = i;
+            }
+        })*/ // dando problemas de undefined
+
+        for (let index = 0; index < votadosPraForca.length; index++) {
+            if(votadosPraForca[index].votos > maisVotado.votos)
+            {
+                maisVotado = votadosPraForca[index];
+            }
+            
+        }
+        console.log("quem vai morrer é o: "+maisVotado.player.tag)
+        let cargoDoMaisVotado =""
+        for (let index = 0; index < partida.length; index++) {
+            if(partida[index].player.id == maisVotado.player.id)
+            {
+                cargoDoMaisVotado = partida[index].cargo;
+                MandarEmbed("Faliceu","#000000","Você morreu enforcado",maisVotado.player.id)
+                partida.splice(index,1)
+            }
+            
+        }
+        console.log("cargo do mais votado: "+ cargoDoMaisVotado)
+        switch (cargoDoMaisVotado) {
+            case "lobisomen":
+                quantidadeLobos--;
+                break;
+            case "habitante":
+                quantidadeHabitantes--;
+                break
+            case "suicida":
+                suicidaMorreuNaForca = true;
+                suicidaVencedor = maisVotado
+                break
+            case "maçom":
+                quantidadeHabitantes--;
+                break
+            case "caçador":
+                quantidadeHabitantes--;
+                break
+            case "otario":
+                quantidadeHabitantes--;
+                break
+            case "clarividente":
+                quantidadeHabitantes--;
+                break
+            case "assassino":
+                quantidadeAssassinos--;
+                break
+            case "homem da floresta":
+                quantidadeHabitantes--;
+                break
+        }
+        MandarEmbed("Crack...","#FF0000",`${maisVotado.player.tag} foi enforcado com ${maisVotado.votos} votos`)
+    }
     ChecarSeAcabou();
     if(jogoAcontecendo)
     {
-        if(votadosPraForca.length > 0)
-        {
-            let maisVotado = votadosPraForca[0]
-
-            /*votadosPraForca.forEach(i =>{
-                if(i.votos > maisVotado.votos)
-                {
-                    maisVotado = i;
-                }
-            })*/ // dando problemas de undefined
-
-            for (let index = 0; index < votadosPraForca.length; index++) {
-                if(votadosPraForca[index].votos > maisVotado.votos)
-                {
-                    maisVotado = votadosPraForca[index];
-                }
-                
-            }
-            console.log("quem vai morrer é o: "+maisVotado.player.tag)
-            let cargoDoMaisVotado =""
-            for (let index = 0; index < partida.length; index++) {
-                if(partida[index].player.id == maisVotado.player.id)
-                {
-                    cargoDoMaisVotado = partida[index].cargo;
-                    MandarEmbed("Faliceu","#000000","Você morreu enforcado",maisVotado.player.id)
-                    partida.splice(index,1)
-                }
-                
-            }
-            console.log("cargo do mais votado: "+ cargoDoMaisVotado)
-            switch (cargoDoMaisVotado) {
-                case "lobisomen":
-                    quantidadeLobos--;
-                    break;
-                case "habitante":
-                    quantidadeHabitantes--;
-                    break
-                case "suicida":
-                    suicidaMorreuNaForca = true;
-                    break
-                case "maçom":
-                    quantidadeHabitantes--;
-                    break
-                case "caçador":
-                    quantidadeHabitantes--;
-                    break
-                case "otario":
-                    quantidadeHabitantes--;
-                    break
-                case "clarividente":
-                    quantidadeHabitantes--;
-                    break
-                case "assassino":
-                    quantidadeAssassinos--;
-                    break
-                case "homem da floresta":
-                    quantidadeHabitantes--;
-                    break
-            }
-            MandarEmbed("Crack...","#FF0000",`${maisVotado.player.tag} foi enforcado com ${maisVotado.votos} votos`)
-        }
+        
 
         MandarEmbed("A lua cheia apareceu...","#3333FF",`A noite chegou, o que será que ela nos aguarda?\nA noite tem duração de ${duracaoNoite} segundos, escolha bem seus movimentos`,null,"https://cdn.discordapp.com/attachments/639557473262370850/854819065839353886/lua.jpg");
 
@@ -677,10 +747,6 @@ function ficarDeNoite()
             } 
         }
         bot.setTimeout(ficarDeDia,duracaoNoite* 1000)
-    }
-    else
-    {
-        AcabarPartida()
     }
 
 }
