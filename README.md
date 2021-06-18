@@ -1,8 +1,6 @@
 # lobinho
 Remake do jogo "Werewolf for Telegram" para o Discord, utilizando NodeJS e o Discord.js.
 
-# AINDA NÃO ESTÁ FUNCIONANDO
-
 ## Este jogo, atualmente, não tem suporte para partidas multiplas e nem servidores multiplos, e provavelmente não terá
 
 ## Como usar
@@ -31,20 +29,22 @@ node .
 - [X] Iniciar partida com jogadores no lobby
 - [X] Sortear os cargos
 - [X] Enviar ações dos jogadores
-- [ ] Receber ações dos jogadores
-- [ ] Enforcar jogadores
-- [ ] Matar jogadores
-- [ ] Investigar jogadores
-- [ ] Fim da partida
+- [X] Receber ações dos jogadores
+- [X] Enforcar jogadores
+- [X] Matar jogadores
+- [X] Investigar jogadores
+- [X] Fim da partida
 - [ ] Leaderboard
 
 - Cargos
-    - [ ] Lobisomen
-    - [ ] Habitante
-    - [ ] Suicida
-    - [ ] Maçom
-    - [ ] Caçador
-    - [ ] Otario
-    - [ ] Clarividente
-    - [ ] Assassino
-    - [ ] Homem da floresta
+    - [X] Lobisomen
+    - [X] Habitante
+    - [X] Suicida
+    - [X] Maçom
+    - [ ] ~~Caçador~~
+    - [X] Otario
+    - [X] Clarividente
+        - [X] Ver o homem da floresta como lobo
+        - [X] Ver o cargo dos outros jogadores
+    - [X] Assassino
+    - [X] Homem da floresta
